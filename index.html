@@ -49,7 +49,6 @@
       -webkit-user-drag: none;
     }
 
-    /* Invisible clickable area over the Sanskrit board */
     #boardHotspot {
       position: absolute;
       left: 790px;
@@ -60,18 +59,56 @@
       background: transparent;
     }
 
-    /* Invisible clickable area for the toy ox-cart artifact */
     #cartHotspot {
       position: absolute;
-      left: 125px;
-      top: 610px;
+      left: 1280px;
+      top: 690px;
       width: 250px;
-      height: 180px;
+      height: 145px;
       cursor: pointer;
       background: transparent;
     }
 
-    /* Shared modal */
+    #maskHotspot {
+      position: absolute;
+      left: 1135px;
+      top: 345px;
+      width: 105px;
+      height: 120px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    #whistleHotspot {
+      position: absolute;
+      left: 1000px;
+      top: 565px;
+      width: 170px;
+      height: 95px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    #plateHotspot {
+      position: absolute;
+      left: 900px;
+      top: 560px;
+      width: 120px;
+      height: 85px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    #banglesHotspot {
+      position: absolute;
+      left: 20px;
+      top: 700px;
+      width: 280px;
+      height: 125px;
+      cursor: pointer;
+      background: transparent;
+    }
+
     .modal {
       position: fixed;
       inset: 0;
@@ -196,6 +233,30 @@
       font-style: italic;
     }
 
+    .artifact-controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .listenBtn {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      background: rgba(255, 245, 210, 0.95);
+      color: #222;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .listenBtn:hover {
+      background: #fff0b3;
+    }
+
     @media (max-width: 768px) {
       #boardTitle,
       #artifactTitle {
@@ -206,7 +267,8 @@
         font-size: 26px;
       }
 
-      .closeBtn {
+      .closeBtn,
+      .listenBtn {
         font-size: 13px;
         padding: 9px 12px;
       }
@@ -228,18 +290,20 @@
       <img src="sanskrit_board.png" alt="Sanskrit room" />
 
       <div id="boardHotspot" onclick="openBoardModal()" aria-label="Open Sanskrit board"></div>
-      <div id="cartHotspot" onclick="openArtifactModal()" aria-label="Open toy ox-drawn cart information"></div>
+      <div id="cartHotspot" onclick="openArtifactModal('cart')" aria-label="Open toy ox-drawn cart information"></div>
+      <div id="maskHotspot" onclick="openArtifactModal('mask')" aria-label="Open terracotta mask information"></div>
+      <div id="whistleHotspot" onclick="openArtifactModal('whistles')" aria-label="Open whistles information"></div>
+      <div id="plateHotspot" onclick="openArtifactModal('plate')" aria-label="Open copper plate information"></div>
+      <div id="banglesHotspot" onclick="openArtifactModal('bangles')" aria-label="Open copper bangles information"></div>
     </div>
   </div>
 
-  <!-- Sanskrit Board Modal -->
   <div id="boardModal" class="modal">
     <div class="panel">
       <button class="closeBtn" onclick="closeBoardModal()">Close</button>
       <div id="boardTitle">Interactive Sanskrit Board</div>
 
       <div id="boardArea">
-        <!-- Top row -->
         <button class="char-btn" style="left: 6%; top: 20%; width: 8%; height: 22%;" onclick="speakSanskrit('अ', 'अ', 'a')">अ</button>
         <button class="char-btn" style="left: 16%; top: 20%; width: 8%; height: 22%;" onclick="speakSanskrit('आ', 'आ', 'aa')">आ</button>
         <button class="char-btn" style="left: 26%; top: 20%; width: 8%; height: 22%;" onclick="speakSanskrit('इ', 'इ', 'i')">इ</button>
@@ -249,7 +313,6 @@
         <button class="char-btn" style="left: 66%; top: 20%; width: 8%; height: 22%;" onclick="speakSanskrit('ऋ', 'ऋ', 'ri')">ऋ</button>
         <button class="char-btn" style="left: 76%; top: 20%; width: 8%; height: 22%;" onclick="speakSanskrit('ॠ', 'ॠ', 'ree')">ॠ</button>
 
-        <!-- Bottom row -->
         <button class="char-btn" style="left: 6%; top: 56%; width: 10%; height: 22%;" onclick="speakSanskrit('लृ', 'लृ', 'lri')">लृ</button>
         <button class="char-btn" style="left: 19%; top: 56%; width: 8%; height: 22%;" onclick="speakSanskrit('ए', 'ए', 'e')">ए</button>
         <button class="char-btn" style="left: 29%; top: 56%; width: 8%; height: 22%;" onclick="speakSanskrit('ऐ', 'ऐ', 'ai')">ऐ</button>
@@ -262,7 +325,6 @@
     </div>
   </div>
 
-  <!-- Artifact Modal -->
   <div id="artifactModal" class="modal">
     <div class="panel">
       <button class="closeBtn" onclick="closeArtifactModal()">Close</button>
@@ -270,6 +332,10 @@
 
       <div id="artifactContent">
         <img id="artifactImage" src="toy_cart.png" alt="Toy ox-drawn cart" />
+
+        <div class="artifact-controls">
+          <button id="artifactListenBtn" class="listenBtn" onclick="speakCurrentArtifact()">🔊 Listen</button>
+        </div>
 
         <div id="artifactText">
           <strong>Toy ox-drawn cart</strong><br>
@@ -301,6 +367,94 @@
     let isDragging = false;
     let startX = 0;
     let startY = 0;
+
+    let currentArtifactSpeech = {
+      devanagari: "क्रीडनक रथः",
+      fallback: "kreed-anaka rathah"
+    };
+
+    const artifacts = {
+      cart: {
+        image: "toy_cart.png",
+        alt: "Toy ox-drawn cart",
+        speech: {
+          devanagari: "क्रीडनक रथः",
+          fallback: "krīḍanaka rathaḥ"
+        },
+        text: `
+          <strong>Toy ox-drawn cart</strong><br>
+          क्रीडनक रथः (<em>krīḍanaka rathaḥ</em>)
+          <br><br>
+          A toy ox-drawn cart from the Indus Valley Civilisation (c. 2600 BCE) shows that people used bullock carts for transport and trade.
+          <br><br>
+          It also suggests that children had toys similar to real-life objects, reflecting daily life in their society.
+        `
+      },
+
+      mask: {
+        image: "terracotta_mask.png",
+        alt: "Terracotta mask",
+        speech: {
+          devanagari: "मृण्मय मुखावरणम्",
+          fallback: "mṛṇmaya mukhāvaraṇam"
+        },
+        text: `
+          <strong>Terracotta mask</strong><br>
+          मृण्मय मुखावरणम् (<em>mṛṇmaya mukhāvaraṇam</em>)
+          <br><br>
+          Terracotta masks (c. 2600 BCE) were likely used in rituals, performances, or ceremonies.
+          <br>
+          They show that the Indus people had artistic skills and cultural practices.
+        `
+      },
+
+      bangles: {
+        image: "copper_bangles.png",
+        alt: "Copper bangles",
+        speech: {
+          devanagari: "ताम्र कङ्कणानि",
+          fallback: "tāmra kaṅkaṇāni"
+        },
+        text: `
+          <strong>Copper bangles</strong><br>
+          ताम्र कङ्कणानि (<em>tāmra kaṅkaṇāni</em>)
+          <br><br>
+          Copper bangles (c. 2600 BCE–1500 BCE) were worn as ornaments, showing a sense of fashion and social identity.
+        `
+      },
+
+      plate: {
+        image: "copper_plate.png",
+        alt: "Copper plate",
+        speech: {
+          devanagari: "ताम्र पटलम्",
+          fallback: "tāmra paṭalam"
+        },
+        text: `
+          <strong>Copper plate</strong><br>
+          ताम्र पटलम् (<em>tāmra paṭalam</em>)
+          <br><br>
+          Copper plates (c. 2600 BCE–1500 BCE) were used for serving or holding food and other items.
+          <br>
+          They show the practical use of metals in daily life. They also reflect the Indus people’s knowledge of metalworking.
+        `
+      },
+
+      whistles: {
+        image: "whistles.png",
+        alt: "Whistles",
+        speech: {
+          devanagari: "क्रीडनक शृङ्गिका",
+          fallback: "krīḍanaka śṛṅgikā"
+        },
+        text: `
+          <strong>Whistles</strong><br>
+          क्रीडनक शृङ्गिका (<em>krīḍanaka śṛṅgikā</em>)
+          <br><br>
+          Whistles from the Indus Valley Civilisation (c. 2600 BCE) show that people created musical or sound-making objects for play or communication.
+        `
+      }
+    };
 
     function applyTransform() {
       scene.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
@@ -419,12 +573,30 @@
       boardModal.classList.remove("active");
     }
 
-    function openArtifactModal() {
+    function openArtifactModal(type = "cart") {
+      const artifactImage = document.getElementById("artifactImage");
+      const artifactText = document.getElementById("artifactText");
+
+      const item = artifacts[type];
+      artifactImage.src = item.image;
+      artifactImage.alt = item.alt;
+      artifactText.innerHTML = item.text;
+      currentArtifactSpeech = item.speech;
+
       artifactModal.classList.add("active");
     }
 
     function closeArtifactModal() {
       artifactModal.classList.remove("active");
+      window.speechSynthesis.cancel();
+    }
+
+    function speakCurrentArtifact() {
+      speakSanskrit(
+        "artifact",
+        currentArtifactSpeech.devanagari,
+        currentArtifactSpeech.fallback
+      );
     }
 
     boardModal.addEventListener("click", (e) => {
