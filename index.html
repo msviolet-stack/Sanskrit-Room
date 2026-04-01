@@ -49,64 +49,70 @@
       -webkit-user-drag: none;
     }
 
-    #boardHotspot {
+    /* Hotspots */
+    #boardHotspot,
+    #cartHotspot,
+    #maskHotspot,
+    #whistleHotspot,
+    #plateHotspot,
+    #banglesHotspot {
       position: absolute;
-      left: 790px;
-      top: 430px;
-      width: 320px;
-      height: 130px;
       cursor: pointer;
       background: transparent;
     }
 
+    /* Slightly reduced so it does not overlap mask */
+    #boardHotspot {
+      left: 800px;
+      top: 440px;
+      width: 280px;
+      height: 110px;
+      z-index: 5;
+    }
+
+    /* Toy ox-cart on bottom right */
     #cartHotspot {
-      position: absolute;
       left: 1280px;
       top: 690px;
       width: 250px;
       height: 145px;
-      cursor: pointer;
-      background: transparent;
+      z-index: 10;
     }
 
+    /* Terracotta mask on the wall */
     #maskHotspot {
-      position: absolute;
-      left: 1135px;
-      top: 345px;
-      width: 105px;
-      height: 120px;
-      cursor: pointer;
-      background: transparent;
+      left: 1160px;
+      top: 285px;
+      width: 115px;
+      height: 135px;
+      z-index: 10;
     }
 
+    /* Whistles on the table */
     #whistleHotspot {
-      position: absolute;
       left: 1000px;
       top: 565px;
       width: 170px;
       height: 95px;
-      cursor: pointer;
-      background: transparent;
+      z-index: 10;
     }
 
+    /* Copper plate on the middle table */
     #plateHotspot {
-      position: absolute;
       left: 900px;
       top: 560px;
       width: 120px;
       height: 85px;
-      cursor: pointer;
-      background: transparent;
+      z-index: 10;
     }
 
+    /* Copper bangles on the front-left table */
     #banglesHotspot {
-      position: absolute;
       left: 20px;
       top: 700px;
       width: 280px;
       height: 125px;
-      cursor: pointer;
-      background: transparent;
+      z-index: 10;
     }
 
     .modal {
@@ -215,6 +221,7 @@
       border: 6px solid #7a4a22;
       background: #f3dfb2;
       box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      object-fit: contain;
     }
 
     #artifactText {
@@ -255,6 +262,11 @@
 
     .listenBtn:hover {
       background: #fff0b3;
+    }
+
+    .imageError {
+      color: #ffb3b3;
+      font-weight: bold;
     }
 
     @media (max-width: 768px) {
@@ -354,6 +366,8 @@
     const scene = document.getElementById("scene");
     const boardModal = document.getElementById("boardModal");
     const artifactModal = document.getElementById("artifactModal");
+    const artifactImage = document.getElementById("artifactImage");
+    const artifactText = document.getElementById("artifactText");
 
     const imgWidth = 1664;
     const imgHeight = 936;
@@ -370,7 +384,7 @@
 
     let currentArtifactSpeech = {
       devanagari: "क्रीडनक रथः",
-      fallback: "kreed-anaka rathah"
+      fallback: "krīḍanaka rathaḥ"
     };
 
     const artifacts = {
@@ -392,7 +406,7 @@
       },
 
       mask: {
-        image: "terracotta_mask.png",
+        image: "Terracotta_mask.png",
         alt: "Terracotta mask",
         speech: {
           devanagari: "मृण्मय मुखावरणम्",
@@ -408,23 +422,8 @@
         `
       },
 
-      bangles: {
-        image: "copper_bangles.png",
-        alt: "Copper bangles",
-        speech: {
-          devanagari: "ताम्र कङ्कणानि",
-          fallback: "tāmra kaṅkaṇāni"
-        },
-        text: `
-          <strong>Copper bangles</strong><br>
-          ताम्र कङ्कणानि (<em>tāmra kaṅkaṇāni</em>)
-          <br><br>
-          Copper bangles (c. 2600 BCE–1500 BCE) were worn as ornaments, showing a sense of fashion and social identity.
-        `
-      },
-
       plate: {
-        image: "copper_plate.png",
+        image: "Copper_plate.png",
         alt: "Copper plate",
         speech: {
           devanagari: "ताम्र पटलम्",
@@ -440,8 +439,23 @@
         `
       },
 
+      bangles: {
+        image: "Copper_bangles.png",
+        alt: "Copper bangles",
+        speech: {
+          devanagari: "ताम्र कङ्कणानि",
+          fallback: "tāmra kaṅkaṇāni"
+        },
+        text: `
+          <strong>Copper bangles</strong><br>
+          ताम्र कङ्कणानि (<em>tāmra kaṅkaṇāni</em>)
+          <br><br>
+          Copper bangles (c. 2600 BCE–1500 BCE) were worn as ornaments, showing a sense of fashion and social identity.
+        `
+      },
+
       whistles: {
-        image: "whistles.png",
+        image: "Whistles.png",
         alt: "Whistles",
         speech: {
           devanagari: "क्रीडनक शृङ्गिका",
@@ -571,17 +585,34 @@
 
     function closeBoardModal() {
       boardModal.classList.remove("active");
+      window.speechSynthesis.cancel();
     }
 
     function openArtifactModal(type = "cart") {
-      const artifactImage = document.getElementById("artifactImage");
-      const artifactText = document.getElementById("artifactText");
-
       const item = artifacts[type];
+      if (!item) return;
+
+      artifactImage.onload = null;
+      artifactImage.onerror = null;
+
+      artifactImage.style.display = "block";
       artifactImage.src = item.image;
       artifactImage.alt = item.alt;
       artifactText.innerHTML = item.text;
       currentArtifactSpeech = item.speech;
+
+      artifactImage.onerror = function () {
+        this.style.display = "none";
+        artifactText.innerHTML = `
+          ${item.text}
+          <br><br>
+          <span class="imageError">Image not found. Check that the file name matches exactly: ${item.image}</span>
+        `;
+      };
+
+      artifactImage.onload = function () {
+        this.style.display = "block";
+      };
 
       artifactModal.classList.add("active");
     }
